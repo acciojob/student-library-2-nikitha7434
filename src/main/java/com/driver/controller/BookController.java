@@ -9,14 +9,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-//Add required annotations
+
 @RestController
 public class BookController {
 
-
-    //Write createBook API with required annotations
-//    Create a Book: POST /book/ Pass the Book object as request body
-//    Return success message “Success” wrapped in a ResponseEntity object Controller Name - createBook
 @Autowired
     BookService bookService;
 @PostMapping("/book")

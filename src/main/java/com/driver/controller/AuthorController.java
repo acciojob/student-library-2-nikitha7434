@@ -13,12 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AuthorController {
 
-
-    //Write createAuthor API with required annotations
-//    Create an Author: POST /author/ Pass the Author object as
-//    request body Return success message “Success” wrapped in a
-//    ResponseEntity object Controller Name - createAuthor
-
     @Autowired
     AuthorService authorService;
 

@@ -16,7 +16,7 @@ public class BookService {
     BookRepository bookRepository2;
 
     public void createBook(Book book){
-
+book=new Book(book.getName(),book.getGenre(),book.getCard(),book.getAuthor(),book.isAvailable());
 
         bookRepository2.save(book);
     }
@@ -29,11 +29,12 @@ if(avilableGener(genre) && available == true) {
 }
 else if(avilableGener(genre) && available==false) {
     books = bookRepository2.findBooksByAuthor(author, available);
-}else if(author.equals("A")) {
-    books = bookRepository2.findBooksByGenreAuthor(genre, author, available);
 }
 else if(available==true) {
     books = bookRepository2.findByAvailability(available);
+}
+else {
+    books=bookRepository2.findBooksByGenreAuthor(genre, author, available);
 }
         return books;
     }

@@ -6,6 +6,8 @@ import com.driver.repositories.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+
 @Service
 public class StudentService {
 
@@ -30,17 +32,18 @@ public class StudentService {
 
     public void createStudent(Student student){
          Card card=cardService4.createAndReturn(student);
+         student=new Student(student.getEmailId(),student.getName(),student.getAge(),student.getCountry());
          student.setCard(card);
+         student.setUpdatedOn(new Date());
+         student.setCreatedOn(new Date());
         studentRepository4.save(student);
     }
 
     public void updateStudent(Student student){
 
       int studentDetails = studentRepository4.updateStudentDetails(student);
-//     student= Student.builder().id(studentDetails).name(student.getName()).emailId(student.getEmailId())
-//             .age(student.getAge()).country(student.getCountry())
-//             .build();
-     // studentRepository4.save(student);
+      student =new Student(studentDetails,student.getName(),student.getAge(), student.getCountry(),student.getEmailId());
+      studentRepository4.save(student);
 
     }
 
