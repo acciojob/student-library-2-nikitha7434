@@ -12,10 +12,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import sun.util.resources.LocaleData;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 @Service
 public class TransactionService {
@@ -69,8 +69,8 @@ public class TransactionService {
             transaction.setCard(card);
         }
 
-        SimpleDateFormat df =new SimpleDateFormat("yyyy-mm-dd");
-        String today =df.format(new Date());
+//
+        Date today =new Date();
 
         List<Transaction> transactionList =transactionRepository5.findAll();
         int allocated_book_card=0;
@@ -92,7 +92,7 @@ public class TransactionService {
             throw new Exception("Book limit has reached for this card");
         }else{
             transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
-            transaction.setTransactionDate(new Date());
+            transaction.setTransactionDate(today);
             transaction.setIssueOperation(true);
         }
 
@@ -102,34 +102,42 @@ public class TransactionService {
        return transaction.getTransactionId(); //return transactionId instead
     }
 
-    public Transaction returnBook(int cardId, int bookId) throws Exception{
+    public Transaction returnBook(int cardId, int bookId) throws Exception {
 
         List<Transaction> transactions = transactionRepository5.find(cardId, bookId, TransactionStatus.SUCCESSFUL, true);
         Transaction transaction = transactions.get(transactions.size() - 1);
 
-        Card card =cardRepository5.findById(cardId).get();
-        Book book=bookRepository5.findById(bookId).get();
+        Card card = cardRepository5.findById(cardId).get();
+        Book book = bookRepository5.findById(bookId).get();
 
-        String issuedate ="";
-        SimpleDateFormat df =new SimpleDateFormat("yyyy-mm-dd");
-        String retunday =df.format(new Date());
+        // current day
+        Date returndate = new Date();
 
-        for(Transaction transaction1:transactions){
+      // book issue date
+        String issuedate = null;
+        for (Transaction transaction1 : transactions) {
 
-            if (transaction.isIssueOperation() && transaction1.getCard().equals(card)){
-                issuedate= String.valueOf(transaction1.getTransactionDate());
+            if (transaction.isIssueOperation() && transaction1.getCard().equals(card)) {
+                issuedate = String.valueOf(transaction1.getTransactionDate());
             }
         }
+        LocalDate start = LocalDate.parse(issuedate);
+
+        LocalDate end = LocalDate.parse((CharSequence) returndate);
+
+        // counting days between todays
+        long noOfdays = ChronoUnit.DAYS.between(start,end);
+
+        int fine =(int)noOfdays*fine_per_day;
 
 
+        Transaction returnBookTransaction = Transaction.builder()
+                .card(card).book(book).fineAmount(fine).isIssueOperation(false).build();
 
-        //for the given transaction calculate the fine amount considering the book has been returned exactly when this function is called
-        //make the book available for other users
-        //make a new transaction for return book which contains the fine amount as well
-
-        Transaction returnBookTransaction  = Transaction.builder()
-                .card(card).book(book).fineAmount(transaction.getFineAmount()).build();
         bookRepository5.updateBook(book);
+
+        transactionRepository5.save(returnBookTransaction);
+
         return returnBookTransaction; //return the transaction after updating all details
     }
 }
