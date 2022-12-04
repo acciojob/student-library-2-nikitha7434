@@ -10,9 +10,12 @@ import com.driver.repositories.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import sun.util.resources.LocaleData;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class TransactionService {
@@ -54,25 +57,47 @@ public class TransactionService {
         Book book=bookRepository5.findById(bookId).get();
 
 
-
-
         if (book == null){
             throw new Exception("Book is either unavailable or not present");
         }else{
            transaction.setBook(book);
         }
 
-        if(card== null){
+        if(card== null || card.getCardStatus().equals("DEACTIVATED")){
             throw new Exception("Card is invalid");
         }else{
             transaction.setCard(card);
         }
 
-        transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
-        transaction.setTransactionDate(new Date());
-        transaction.setIssueOperation(true);
+        SimpleDateFormat df =new SimpleDateFormat("yyyy-mm-dd");
+        String today =df.format(new Date());
+
+        List<Transaction> transactionList =transactionRepository5.findAll();
+        int allocated_book_card=0;
+        int total_issue_book_today=0;
+
+        for(Transaction  transaction1 :transactionList){
+
+            if(transaction1.isIssueOperation()  &&
+                    transaction1.getCard().equals(card) && transaction1.getTransactionStatus().equals("SUCCESSFUL")){
+                allocated_book_card++;
+            }
+
+            if(transaction1.isIssueOperation() && transaction1.getTransactionDate().equals(today)){
+                total_issue_book_today++;
+            }
+        }
+
+        if (allocated_book_card>=max_allowed_books || total_issue_book_today>=getMax_allowed_days){
+            throw new Exception("Book limit has reached for this card");
+        }else{
+            transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+            transaction.setTransactionDate(new Date());
+            transaction.setIssueOperation(true);
+        }
+
         transactionRepository5.save(transaction);
-       bookRepository5.updateBook(book);
+        bookRepository5.updateBook(book);
 
        return transaction.getTransactionId(); //return transactionId instead
     }
@@ -84,6 +109,19 @@ public class TransactionService {
 
         Card card =cardRepository5.findById(cardId).get();
         Book book=bookRepository5.findById(bookId).get();
+
+        String issuedate ="";
+        SimpleDateFormat df =new SimpleDateFormat("yyyy-mm-dd");
+        String retunday =df.format(new Date());
+
+        for(Transaction transaction1:transactions){
+
+            if (transaction.isIssueOperation() && transaction1.getCard().equals(card)){
+                issuedate= String.valueOf(transaction1.getTransactionDate());
+            }
+        }
+
+
 
         //for the given transaction calculate the fine amount considering the book has been returned exactly when this function is called
         //make the book available for other users

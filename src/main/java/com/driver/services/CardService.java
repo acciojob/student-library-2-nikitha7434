@@ -18,8 +18,6 @@ public class CardService {
 
     public Card createAndReturn(Student student){
 
-        //link student with a new card
-       // card.setStudent(student);
         Card card = Card.builder().cardStatus(CardStatus.ACTIVATED).createdOn(new Date())
                         .updatedOn(new Date()).build();
 cardRepository3.save(card);

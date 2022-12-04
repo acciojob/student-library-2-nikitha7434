@@ -1,6 +1,7 @@
 package com.driver.repositories;
 
 import com.driver.models.Book;
+import com.driver.models.Card;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -30,4 +31,5 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     @Query("update Book b set b.available =:#{#book.available}, b.card =:#{#book.card} where b.id =:#{#book.id}")
     int updateBook(Book book);
 
+    List<Book> findByCard(Card card);
 }

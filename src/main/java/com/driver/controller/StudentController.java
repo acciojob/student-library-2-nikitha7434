@@ -31,7 +31,8 @@ public class StudentController {
     //Add required annotations
     @PostMapping("/student")
     public ResponseEntity createStudent(@RequestBody()Student student){
-        studentService.createStudent(student);
+
+       studentService.createStudent(student);
 
         return new ResponseEntity<>("the student is successfully added to the system", HttpStatus.CREATED);
     }
