@@ -13,7 +13,7 @@ public class AuthorService {
     AuthorRepository authorRepository1;
 
     public void create(Author author){
-        author =new Author(author.getName(), author.getEmail(),author.getId(),author.getCountry());
+
         authorRepository1.save(author);
 
     }

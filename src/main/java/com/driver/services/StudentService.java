@@ -32,9 +32,9 @@ public class StudentService {
 
     public void createStudent(Student student){
          Card card=cardService4.createAndReturn(student);
-         student=new Student(student.getEmailId(),student.getName(),student.getAge(),student.getCountry());
+
          student.setCard(card);
-         student.setUpdatedOn(new Date());
+
          student.setCreatedOn(new Date());
         studentRepository4.save(student);
     }
@@ -42,7 +42,8 @@ public class StudentService {
     public void updateStudent(Student student){
 
       int studentDetails = studentRepository4.updateStudentDetails(student);
-      student =new Student(studentDetails,student.getName(),student.getAge(), student.getCountry(),student.getEmailId());
+      student = Student.builder().id(studentDetails).emailId(student.getEmailId()).name(student.getName()).
+        updatedOn(new Date()).build();
       studentRepository4.save(student);
 
     }
@@ -50,6 +51,6 @@ public class StudentService {
     public void deleteStudent(int id){
         //Delete student and deactivate corresponding card
         cardService4.deactivateCard(id);
-studentRepository4.deleteCustom(id);
+          studentRepository4.deleteCustom(id);
     }
 }

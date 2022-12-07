@@ -10,7 +10,7 @@ import com.driver.repositories.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import sun.util.resources.LocaleData;
+
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -51,13 +51,13 @@ public class TransactionService {
 
 
         //Note that the error message should match exactly in all cases
-        Transaction transaction=null;
+        Transaction transaction = new Transaction();
 
         Card card =cardRepository5.findById(cardId).get();
         Book book=bookRepository5.findById(bookId).get();
 
 
-        if (book == null){
+        if (book == null || !book.isAvailable()){
             throw new Exception("Book is either unavailable or not present");
         }else{
            transaction.setBook(book);
@@ -88,7 +88,7 @@ public class TransactionService {
             }
         }
 
-        if (allocated_book_card>=max_allowed_books || total_issue_book_today>=getMax_allowed_days){
+        if (allocated_book_card>=(int)max_allowed_books || total_issue_book_today>=getMax_allowed_days){
             throw new Exception("Book limit has reached for this card");
         }else{
             transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
@@ -114,7 +114,7 @@ public class TransactionService {
         Date returndate = new Date();
 
       // book issue date
-        String issuedate = null;
+        String issuedate="";
         for (Transaction transaction1 : transactions) {
 
             if (transaction.isIssueOperation() && transaction1.getCard().equals(card)) {
@@ -122,7 +122,6 @@ public class TransactionService {
             }
         }
         LocalDate start = LocalDate.parse(issuedate);
-
         LocalDate end = LocalDate.parse((CharSequence) returndate);
 
         // counting days between todays

@@ -16,7 +16,7 @@ public class BookService {
     BookRepository bookRepository2;
 
     public void createBook(Book book){
-book=new Book(book.getName(),book.getGenre(),book.getCard(),book.getAuthor(),book.isAvailable());
+
 
         bookRepository2.save(book);
     }

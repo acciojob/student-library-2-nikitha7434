@@ -10,6 +10,8 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @ToString
+@NoArgsConstructor
+@Data
 @Entity
 public class Book {
 
@@ -40,79 +42,6 @@ public class Book {
     @JsonIgnoreProperties("book")
     private List<Transaction> transactions;
 
-    public Book(String name, Genre genre, Card card, Author author, boolean available) {
-        this.name=name;
-        this.genre=genre;
-        this.card=card;
-        this.author=author;
-    }
-    public Book(String name,Genre genre,Author author){
-        this.author=author;
-        this.genre=genre;
-        this.name=name;
-    }
-    public Book(String name,String gener,Card card,Author author,boolean available){
-        this.name=name;
-        this.genre= Genre.valueOf(gener);
-        this.card=card;
-        this.author=author;
-        this.available=available;
-    }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public List<Transaction> getTransactions() {
-        return transactions;
-    }
-
-    public void setTransactions(List<Transaction> transactions) {
-        this.transactions = transactions;
-    }
-
-    public boolean isAvailable() {
-        return available;
-    }
-
-    public void setAvailable(boolean available) {
-        this.available = available;
-    }
-
-    public Card getCard() {
-        return card;
-    }
-
-    public void setCard(Card card) {
-        this.card = card;
-    }
-
-    public Author getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(Author author) {
-        this.author = author;
-    }
-
-    public Genre getGenre() {
-        return genre;
-    }
-
-    public void setGenre(Genre genre) {
-        this.genre = genre;
-    }
 }
 
