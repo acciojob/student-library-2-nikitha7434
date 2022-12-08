@@ -33,18 +33,13 @@ public class StudentService {
     public void createStudent(Student student){
          Card card=cardService4.createAndReturn(student);
 
-         student.setCard(card);
 
-         student.setCreatedOn(new Date());
-        studentRepository4.save(student);
     }
 
     public void updateStudent(Student student){
 
-      int studentDetails = studentRepository4.updateStudentDetails(student);
-      student = Student.builder().id(studentDetails).emailId(student.getEmailId()).name(student.getName()).
-        updatedOn(new Date()).build();
-      studentRepository4.save(student);
+       studentRepository4.updateStudentDetails(student);
+
 
     }
 

@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class TransactionService {
@@ -39,65 +40,43 @@ public class TransactionService {
     public int fine_per_day;
 
     public String issueBook(int cardId, int bookId) throws Exception {
-        //check whether bookId and cardId already exist
-        //conditions required for successful transaction of issue book:
-        //1. book is present and available
-        // If it fails: throw new Exception("Book is either unavailable or not present");
-        //2. card is present and activated
-        // If it fails: throw new Exception("Card is invalid");
-        //3. number of books issued against the card is strictly less than max_allowed_books
-        // If it fails: throw new Exception("Book limit has reached for this card");
-        //If the transaction is successful, save the transaction to the list of transactions and return the id
-
-
-        //Note that the error message should match exactly in all cases
-        Transaction transaction = new Transaction();
 
         Card card =cardRepository5.findById(cardId).get();
         Book book=bookRepository5.findById(bookId).get();
+        //Note that the error message should match exactly in all cases
+        Transaction transaction = new Transaction();
 
+
+          transaction.setBook(book);
+          transaction.setCard(card);
 
         if (book == null || !book.isAvailable()){
+            transaction.setTransactionStatus(TransactionStatus.FAILED);
+            transactionRepository5.save(transaction);
             throw new Exception("Book is either unavailable or not present");
-        }else{
-           transaction.setBook(book);
         }
 
         if(card== null || card.getCardStatus().equals("DEACTIVATED")){
+            transaction.setTransactionStatus(TransactionStatus.FAILED);
+            transactionRepository5.save(transaction);
             throw new Exception("Card is invalid");
-        }else{
-            transaction.setCard(card);
         }
-
-//
-        Date today =new Date();
-
-        List<Transaction> transactionList =transactionRepository5.findAll();
-        int allocated_book_card=0;
-        int total_issue_book_today=0;
-
-        for(Transaction  transaction1 :transactionList){
-
-            if(transaction1.isIssueOperation()  &&
-                    transaction1.getCard().equals(card) && transaction1.getTransactionStatus().equals("SUCCESSFUL")){
-                allocated_book_card++;
-            }
-
-            if(transaction1.isIssueOperation() && transaction1.getTransactionDate().equals(today)){
-                total_issue_book_today++;
-            }
-        }
-
-        if (allocated_book_card>=(int)max_allowed_books || total_issue_book_today>=getMax_allowed_days){
+        if(card.getBooks().size()>=max_allowed_books){
+            transaction.setTransactionStatus(TransactionStatus.FAILED);
+            transactionRepository5.save(transaction);
             throw new Exception("Book limit has reached for this card");
-        }else{
-            transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
-            transaction.setTransactionDate(today);
-            transaction.setIssueOperation(true);
         }
 
-        transactionRepository5.save(transaction);
+          book.setCard(card);
+        book.setAvailable(false);
+        List<Book> booklist=card.getBooks();
+        booklist.add(book);
+        card.setBooks(booklist);
+
+
         bookRepository5.updateBook(book);
+        transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+        transactionRepository5.save(transaction);
 
        return transaction.getTransactionId(); //return transactionId instead
     }
@@ -107,35 +86,42 @@ public class TransactionService {
         List<Transaction> transactions = transactionRepository5.find(cardId, bookId, TransactionStatus.SUCCESSFUL, true);
         Transaction transaction = transactions.get(transactions.size() - 1);
 
-        Card card = cardRepository5.findById(cardId).get();
-        Book book = bookRepository5.findById(bookId).get();
+
 
         // current day
-        Date returndate = new Date();
+        Date issuedate = transaction.getTransactionDate();
+        long timeissuse =Math.abs(System.currentTimeMillis()-issuedate.getTime());
+        long no_of_days_passed = TimeUnit.DAYS.convert(timeissuse,TimeUnit.MILLISECONDS);
 
       // book issue date
-        String issuedate="";
-        for (Transaction transaction1 : transactions) {
 
-            if (transaction.isIssueOperation() && transaction1.getCard().equals(card)) {
-                issuedate = String.valueOf(transaction1.getTransactionDate());
-            }
+
+        int fine =0;
+        if(no_of_days_passed>getMax_allowed_days){
+            fine =(int)((no_of_days_passed-getMax_allowed_days)*fine_per_day);
         }
-        LocalDate start = LocalDate.parse(issuedate);
-        LocalDate end = LocalDate.parse((CharSequence) returndate);
 
-        // counting days between todays
-        long noOfdays = ChronoUnit.DAYS.between(start,end);
-
-        int fine =(int)noOfdays*fine_per_day;
-
-
-        Transaction returnBookTransaction = Transaction.builder()
-                .card(card).book(book).fineAmount(fine).isIssueOperation(false).build();
+Book book =transaction.getBook();
+        book.setAvailable(true);
+        book.setCard(null);
 
         bookRepository5.updateBook(book);
-
+        Transaction returnBookTransaction =new Transaction();
+        returnBookTransaction.setBook(transaction.getBook());
+        returnBookTransaction.setCard(transaction.getCard());
+        returnBookTransaction.setIssueOperation(false);
+        returnBookTransaction.setFineAmount(fine);
+        returnBookTransaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
         transactionRepository5.save(returnBookTransaction);
+
+        Card card =cardRepository5.findById(cardId).get();
+
+        List<Book> booklist=card.getBooks();
+        booklist.remove(book);
+        card.setBooks(booklist);
+
+
+
 
         return returnBookTransaction; //return the transaction after updating all details
     }

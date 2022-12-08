@@ -17,9 +17,10 @@ public class CardService {
     CardRepository cardRepository3;
 
     public Card createAndReturn(Student student){
+Card card=new Card();
+card.setStudent(student);
+student.setCard(card);
 
-        Card card = Card.builder().cardStatus(CardStatus.ACTIVATED).createdOn(new Date())
-                        .updatedOn(new Date()).build();
 cardRepository3.save(card);
         return card;
     }
